@@ -2,32 +2,30 @@ package main
 
 import (
 	"fmt"
-	"net/http"
-	"os/exec"
+	"os"
 
-	"github.com/github/hub/github"
+	"github.com/harai/hubbit/git"
+	"github.com/harai/hubbit/github"
+	"github.com/harai/hubbit/hub"
 	"github.com/octokit/go-octokit/octokit"
 )
 
 func main() {
-	_, err := exec.Command("git", "version").Output()
+	issue, err := git.CurrentIssueNo()
 	if err != nil {
-		panic("Panicked1")
+		fmt.Println("not in a issue branch")
+		os.Exit(1)
 	}
-	c, err := github.CurrentConfig().DefaultHost()
+	fmt.Println(github.IssueAsHashtag(issue))
+	client := hub.Authenticate()
+	url, err := octokit.CurrentUserURL.Expand(octokit.M{})
 	if err != nil {
-		panic("Panicked2")
+		panic("Not happen")
 	}
-	tokenAuth := octokit.TokenAuth{AccessToken: c.AccessToken}
-	host := c.Host
-	client := octokit.NewClientWith("https://api.github.com", "Hub", tokenAuth, &http.Client{})
-	url, err := octokit.UserURL.Expand(octokit.M{"user": "harai"})
-	if err != nil {
-		panic("Panicked2")
+	fmt.Println(url)
+	user, result := client.Users(url).One()
+	if result.Err != nil {
+		panic(result.Response.Status)
 	}
-	user, err := client.Users(url).One()
 	fmt.Println(user.ReposURL)
-	fmt.Println(tokenAuth)
-	fmt.Println(c.AccessToken)
-	fmt.Println(host)
 }
