@@ -33,13 +33,14 @@ package main
 import (
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/codegangsta/cli"
 	"github.com/harai/hubbit/git"
 	"github.com/harai/hubbit/github"
 )
 
-func commit(c *cli.Context) {
+func commitAction(c *cli.Context) {
 	issue, err := git.CurrentIssueNo()
 	if err != nil {
 		log.Fatalln("not in an issue branch")
@@ -50,6 +51,15 @@ func commit(c *cli.Context) {
 	}
 }
 
+func newAction(c *cli.Context) {
+	issueStr := c.Args().First()
+	issueNo, err := strconv.Atoi(issueStr)
+	if err != nil {
+		log.Fatalln("pass new issue No. as the second argument")
+	}
+	git.CreateNewIssueBranch(issueNo)
+}
+
 func main() {
 	app := cli.NewApp()
 	app.Name = "hubbit"
@@ -58,8 +68,14 @@ func main() {
 		{
 			Name:    "commit",
 			Aliases: []string{"c"},
-			Usage:   "record changes to the git repository with a hashtag",
-			Action:  commit,
+			Usage:   "commit with template",
+			Action:  commitAction,
+		},
+		{
+			Name:    "new",
+			Aliases: []string{"n"},
+			Usage:   "create the new branch and checkout it",
+			Action:  newAction,
 		},
 	}
 

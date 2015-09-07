@@ -2,6 +2,7 @@ package git
 
 import (
 	"errors"
+	"log"
 	"os"
 	"os/exec"
 	"regexp"
@@ -50,7 +51,7 @@ func CurrentIssueNo() (r int, e error) {
 func CurrentBranchName() string {
 	name, err := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD").Output()
 	if err != nil {
-		panic("not in git repository")
+		log.Fatalln("not in git repository")
 	}
 	return string(name)
 }
@@ -66,9 +67,16 @@ func CommitWithTemplate(message string) error {
 
 // CreateNewBranch creates and checkouts new branch.
 func CreateNewBranch(name string) error {
-	cmd := exec.Command("git", "checkout", "-c", name)
+	cmd := exec.Command("git", "checkout", "-b", name)
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
 	return cmd.Run()
+}
+
+// CreateNewIssueBranch creates and checkouts new isuse branch.
+func CreateNewIssueBranch(issueNo int) {
+	if err := CreateNewBranch("issue/" + strconv.Itoa(issueNo)); err != nil {
+		log.Fatalln("not in git repository")
+	}
 }
